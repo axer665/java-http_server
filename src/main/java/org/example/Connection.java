@@ -2,6 +2,7 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 public class Connection extends Thread {
@@ -15,7 +16,7 @@ public class Connection extends Thread {
         this.socket = socket;
         this.routes = routes;
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            in =  new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new BufferedOutputStream(socket.getOutputStream());
             start(); // вызываем run()
         } catch (IOException e) {
@@ -28,6 +29,7 @@ public class Connection extends Thread {
         try {
             Request request = new Request(in);
             if (request.analyze()) {
+
                 String method = request.getMethod();
                 String path = request.getPath();
 
@@ -50,6 +52,8 @@ public class Connection extends Thread {
             }
         } catch (IOException e){
 
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
     }
 
