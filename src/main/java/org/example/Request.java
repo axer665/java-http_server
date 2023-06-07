@@ -1,20 +1,12 @@
 package org.example;
 
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Request  {
@@ -62,18 +54,14 @@ public class Request  {
     }
 
     public boolean analyze() throws IOException, URISyntaxException {
-        final var allowedMethods = List.of(GET, POST);
-
         String initialLine = in.readLine();
         if (initialLine == null) {
             return false;
         }
 
-        //log(initialLine);
         final var parts = initialLine.split(" ");
 
         if (parts.length != 3) {
-            // just close socket
             return false;
         }
 
@@ -81,12 +69,12 @@ public class Request  {
         url = parts[1];
         path = parts[1];
 
+        // собираем заголовки
         while (true)  {
             String headerLine = in.readLine();
             if (headerLine == null) {
                 return false;
             }
-
             if (headerLine.length() == 0)  {
                 break;
             }
@@ -100,7 +88,7 @@ public class Request  {
 
         // обрабатываем GET-запрос
         if (!method.equals(POST)) {
-            //используем URLEncodedUtils о условиям задачи (но использовать не будем =))
+            // используем URLEncodedUtils по условиям задачи (но использовать не будем =))
             try {
                 URI urlObject = new URI(path);
                 List<NameValuePair> formparams = URLEncodedUtils.parse(urlObject,"UTF-8");
@@ -109,6 +97,7 @@ public class Request  {
 
             }
 
+            // вручную парсим параметры
             if (parts[1].indexOf("?") != -1)  {
                 path = parts[1].substring(0, parts[1].indexOf("?"));
                 parseParameters(parts[1].substring(parts[1].indexOf("?") + 1));
@@ -119,11 +108,12 @@ public class Request  {
         if (!method.equals(GET)) {
             int contentLength = 0;
             try {
-                contentLength =Integer.parseInt(headers.get("Content-Length").trim());
+                contentLength = Integer.parseInt(headers.get("Content-Length").trim());
             } catch (NumberFormatException e) {
-                throw new IOException("Malformed or missing Content-Length header");
+
             }
 
+            // Парсим тело запроса
             String body = null;
             if (0 < contentLength) {
                 char[] c = new char[contentLength];
@@ -131,8 +121,6 @@ public class Request  {
                 body = new String(c);
             }
             parseParameters(body);
-
-            System.out.println(queryParameters);
         }
         return true;
     }

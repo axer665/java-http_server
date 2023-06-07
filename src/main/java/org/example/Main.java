@@ -73,6 +73,27 @@ public class Main {
             }
         });
 
+        server.addHandler("GET", "/params", new Handler() {
+            public void handle(Request request, Response response) throws IOException {
+                final var filePath = Path.of(".", "public", "/params.html");
+                final var template = Files.readString(filePath);
+                final var htmlCode = template.replace(
+                        "{{method}}",
+                        request.getMethod()
+                ).replace("{{params}}", request.getParameters());
+
+                final var mimeType = Files.probeContentType(filePath);
+                final var length = Files.size(filePath);
+
+                response.setResponseCode(200, "OK");
+                response.addHeader("Content-Type", mimeType);
+                response.addHeader("Content-Length", String.valueOf(length).toString());
+
+                response.addBody(htmlCode);
+                response.result();
+            }
+        });
+
         server.addHandler("POST", "/params", new Handler() {
             public void handle(Request request, Response response) throws IOException {
                 final var filePath = Path.of(".", "public", "/params.html");
