@@ -25,6 +25,7 @@ public class Server {
             this.routes.put(route,methods);
         } else {
             Map<String, Handler> routeMethod = routes.get(route);
+            routeMethod.put(method, handler);
             this.routes.put(route, routeMethod);
         }
     }
